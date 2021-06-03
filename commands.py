@@ -121,30 +121,32 @@ class Commands(commands.Cog, name="commands"):
             with open('songs.json', 'w') as json_file:
                 json_string = json.dumps(self.song_data, indent=4)
                 json_file.write(json_string)
-            print(anime_name)
-            print(youtube_link)
             await ctx.message.delete()
             await ctx.send("Successfully added anime song to song database.")
             return
         else:
             await ctx.send("Considering the song suggestion, please wait until Brandon's approval.")
             if anime_name.startswith("http"):
-                await ctx.send("The correct format is: !!suggest_song <ANIME NAME> <YOUTUBE LINK>")
+                await ctx.send("The correct format is: !!suggest_song <YOUTUBE LINK> <ANIME NAME>")
                 return
 
             def wait_for_approval(m):
-                return m.content.lower() == "lgtm" and str(m.author.id) == OWNER_CLIENT_ID
+                return (m.content.lower() == "lgtm" and str(m.author.id) == OWNER_CLIENT_ID) \
+                       or (m.content.lower() == "no" and str(m.author.id) == OWNER_CLIENT_ID)
 
-            try:
-                user_msg = await self.bot.wait_for('message', check=wait_for_approval, timeout=180.0)
-                self.song_data.append([anime_name, youtube_link])
-                with open('songs.json', 'w') as json_file:
-                    json_string = json.dumps(self.song_data, indent=4)
-                    json_file.write(json_string)
-                await ctx.send("Successfully added anime song to song database.")
-            except Exception as e:
-                print(e)
-                await ctx.send("Ran out of time for approval")
+        try:
+            user_msg = await self.bot.wait_for('message', check=wait_for_approval, timeout=180.0)
+            if user_msg.content.lower() == "no":
+                await ctx.send("Unapproved by Brandon.")
+                return
+            self.song_data.append([anime_name, youtube_link])
+            with open('songs.json', 'w') as json_file:
+                json_string = json.dumps(self.song_data, indent=4)
+                json_file.write(json_string)
+            await ctx.send("Successfully added anime song to song database.")
+        except Exception as e:
+            print(e)
+            await ctx.send("Ran out of time for approval")
 
 
 def setup(bot):
