@@ -72,8 +72,8 @@ class Commands(commands.Cog, name="commands"):
             await ctx.send("Playing a song in a few seconds, hold tight!")
         except Exception as e:
             print(e)
-            await ctx.send("Sorry, but I'm already in a voice channel!")
-        await asyncio.sleep(3)
+            await ctx.send("Starting up another game!")
+        await asyncio.sleep(1)
 
         rand_idx = random.randint(0, len(self.song_data) - 1)
         music_to_guess = self.song_data[rand_idx][0]
@@ -82,29 +82,48 @@ class Commands(commands.Cog, name="commands"):
         player = await YTDLSource.from_url(music_url, loop=self.bot.loop,
                                            stream=True)
         ctx.voice_client.play(player, after=lambda x: print('Player error: %s' % x) if x else None)
-        await ctx.send("Try guessing the anime by typing in this channel (anyone can try)! You got 3 minutes.")
+        await ctx.send("Try guessing the anime by typing in this channel (anyone can try)! You got 30 seconds.")
 
         def check_anime_song(m):
             anime_name = m.content.lower()
             return anime_name == music_to_guess.lower() and m.channel == ctx.channel
 
         try:
-            user_msg = await self.bot.wait_for('message', check=check_anime_song, timeout=180.0)
-            await ctx.send("Nice, you guessed the correct anime ({})!".format(music_to_guess.title()))
+            user_msg = await self.bot.wait_for('message', check=check_anime_song, timeout=30.0)
+            await ctx.send("Nice, you guessed the correct anime ({})!".format(
+                music_to_guess.title()))
             ctx.voice_client.stop()
         except Exception as e:
             print(e)
-            await ctx.send("Sorry, you took to long to guess.")
+            await ctx.send(
+                "Sorry, you took to long to guess do !!playgame to start again, the song was from {}.".format(
+                    music_to_guess.title()))
             ctx.voice_client.stop()
 
     @commands.command(name="leavevc", pass_context=True)
     async def leave_vc(self, ctx):
+        await ctx.voice_client.stop()
         await ctx.voice_client.disconnect()
         await ctx.send("Goodbye!")
 
     @commands.command(name="hello", pass_context=True)
     async def handle_hello(self, ctx):
         await ctx.send("Shut up scum.")
+
+    @commands.command(name="query_song", pass_context=True)
+    async def query_song(self, ctx):
+        args = ctx.message.content.split(" ")
+        if len(args) < 2:
+            await ctx.send("Format: !query_song <anime name>")
+            return
+        links = ""
+        queried_name = " ".join(args[1:]).lower()
+        for data in self.song_data:
+            anime_name = data[0].lower()
+            if anime_name == queried_name:
+                links += data[1] + "\n"  # Links
+
+        await ctx.send(f"All Song Links from the queried {queried_name.title()}:\n```{links}```")
 
     @commands.command(name="suggest_song", pass_context=True)
     async def suggest_song(self, ctx):
