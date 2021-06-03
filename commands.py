@@ -79,10 +79,13 @@ class Commands(commands.Cog, name="commands"):
         def check_anime_song(m):
             anime_name = m.content.lower()
             return anime_name == "bunny girl senpai" and m.channel == ctx.channel
-
-        user_msg = await self.bot.wait_for('message', check=check_anime_song, timeout=20.0)
-        await ctx.send("Nice, you guessed the correct anime!")
-        voice_channel.stop()
+        try:
+            user_msg = await self.bot.wait_for('message', check=check_anime_song, timeout=180.0)
+            await ctx.send("Nice, you guessed the correct anime!")
+            ctx.voice_client.stop()
+        except Exception as e:
+            print(e)
+            ctx.voice_client.stop()
         # timeout for 20 seconds for now, TODO: Check the length of the song
 
     @commands.command(name="leavevc", pass_context=True)
