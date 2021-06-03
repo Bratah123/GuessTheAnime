@@ -58,8 +58,6 @@ class Commands(commands.Cog, name="commands"):
         Entry point for the game
         :return: void
         """
-        # TODO: Play a song, and wait until someone gets the anime correct, once they do play a different song
-        # and continue
         voice_channel = ctx.author.voice.channel
         try:
             await voice_channel.connect()
