@@ -6,6 +6,8 @@ import youtube_dl as youtube_dl
 from discord.ext import commands
 import asyncio
 
+from database_functions import add_points, get_points
+
 ytdl_format_options = {
     'format': 'bestaudio/best',
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
@@ -17,11 +19,12 @@ ytdl_format_options = {
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0'  # bind to ipv4 since ipv6 addresses cause issues sometimes
+    'source_address': '0.0.0.0',  # bind to ipv4 since ipv6 addresses cause issues sometimes
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
 }
 
 ffmpeg_options = {
-    'options': '-vn'
+    'options': '-vn -fflags +discardcorrupt -ignore_unknown -dn -sn -ab 32000',
 }
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
@@ -62,12 +65,16 @@ class Commands(commands.Cog, name="commands"):
         random.shuffle(self.song_data)
         self.song_index = 0
 
-    @commands.command(name="playgame", pass_context=True)
-    async def play_song(self, ctx):
+    @commands.command(name="playgame", aliases=['pg'], pass_context=True)
+    async def play_game(self, ctx):
         """
         Entry point for the game
         :return: void
         """
+        play_amount = 0
+        args = ctx.message.content.split(" ")
+        if len(args) > 2:
+            play_amount += int(args[1])
         voice_channel = ctx.author.voice.channel
         try:
             await voice_channel.connect()
@@ -80,24 +87,25 @@ class Commands(commands.Cog, name="commands"):
         if self.song_index == len(self.song_data) - 1:
             self.song_index = 0
             random.shuffle(self.song_data)
-
-        music_to_guess = self.song_data[self.song_index][0]
-        music_url = self.song_data[self.song_index][1]
-
-        player = await YTDLSource.from_url(music_url, loop=self.bot.loop,
-                                           stream=True)
-        ctx.voice_client.play(player, after=lambda x: print('Player error: %s' % x) if x else None)
+            await ctx.send("All unique songs have been played, shuffling the list now")
 
         def check_anime_song(m):
             anime_name = m.content.lower()
             return anime_name == music_to_guess.lower() and m.channel == ctx.channel
 
-        try:
-            while True:
+        while True:
+            try:
+                music_to_guess = self.song_data[self.song_index][0]
+                music_url = self.song_data[self.song_index][1]
 
-                await ctx.send("Try guessing this anime by typing in this channel (anyone can try)! You got 25 seconds.")
+                player = await YTDLSource.from_url(music_url, loop=self.bot.loop,
+                                                   stream=True)
+                ctx.voice_client.play(player, after=lambda x: print('Player error: %s' % x) if x else None)
+                await ctx.send(
+                    "Try guessing this anime by typing in this channel (anyone can try)! You got 25 seconds.")
 
                 user_msg = await self.bot.wait_for('message', check=check_anime_song, timeout=25.0)
+                add_points(str(user_msg.author.id), 1)
                 await ctx.send("Nice, you guessed the correct anime ({})!".format(
                     music_to_guess.title()))
 
@@ -106,6 +114,7 @@ class Commands(commands.Cog, name="commands"):
                 if self.song_index == len(self.song_data) - 1:
                     self.song_index = 0
                     random.shuffle(self.song_data)
+                    await ctx.send("All unique songs have been played, shuffling the list now")
 
                 music_to_guess = self.song_data[self.song_index][0]
                 music_url = self.song_data[self.song_index][1]
@@ -114,14 +123,32 @@ class Commands(commands.Cog, name="commands"):
                                                    stream=True)
                 ctx.voice_client.stop()
                 await asyncio.sleep(1)
-                ctx.voice_client.play(player, after=lambda x: print('Player error: %s' % x) if x else None)
+            except Exception as e:
+                print(e)
+                await ctx.send(
+                    "Sorry, you took to long to guess do !playgame to start again, the song was from {}.".format(
+                        music_to_guess.title()))
+                self.song_index += 1
+                ctx.voice_client.stop()
+
+    @commands.command(name="playsong", pass_context=True)
+    async def play_song(self, ctx):
+        voice_channel = ctx.author.voice.channel
+        try:
+            await voice_channel.connect()
+            await ctx.send("Playing a random anime song in my database, hold tight!")
         except Exception as e:
             print(e)
-            await ctx.send(
-                "Sorry, you took to long to guess do !!playgame to start again, the song was from {}.".format(
-                    music_to_guess.title()))
-            self.song_index += 1
             ctx.voice_client.stop()
+            await ctx.send("Starting up another random anime song!")
+        await asyncio.sleep(1)
+
+        rand_idx = random.randint(0, len(self.song_data) - 1)
+        music_url = self.song_data[rand_idx][1]
+
+        player = await YTDLSource.from_url(music_url, loop=self.bot.loop,
+                                           stream=True)
+        ctx.voice_client.play(player, after=lambda x: print('Player error: %s' % x) if x else None)
 
     @commands.command(name="leavegame", pass_context=True)
     async def leave_vc(self, ctx):
@@ -132,7 +159,13 @@ class Commands(commands.Cog, name="commands"):
     async def handle_hello(self, ctx):
         await ctx.send("Shut up scum.")
 
-    @commands.command(name="query_song", pass_context=True)
+    @commands.command(name="stats", pass_context=True)
+    async def handle_stats(self, ctx):
+        e = discord.Embed(title=ctx.author.name + "'s Stats",
+                          description=f"Song Points: {get_points(str(ctx.author.id))}")
+        await ctx.send(embed=e)
+
+    @commands.command(name="query_song", aliases=['qs'], pass_context=True)
     async def query_song(self, ctx):
         args = ctx.message.content.split(" ")
         if len(args) < 2:
@@ -140,18 +173,22 @@ class Commands(commands.Cog, name="commands"):
             return
         links = ""
         queried_name = " ".join(args[1:]).lower()
+        total_songs = 0
         for data in self.song_data:
             anime_name = data[0].lower()
-            if anime_name == queried_name:
-                links += data[1] + "\n"  # Links
+            if queried_name in anime_name:
+                # youtube_vid = await YTDLSource.from_url(data[1], stream=True)
+                links += anime_name.title() + f": " + data[1] + "\n\n"  # Links
+                total_songs += 1
 
-        await ctx.send(f"All Song Links from the queried {queried_name.title()}:\n```{links}```")
+        await ctx.send(
+            f"All Song Links from the queried {queried_name.title()}:\n```Total Songs Found: {total_songs}\n\n{links}```")
 
-    @commands.command(name="suggest_song", pass_context=True)
+    @commands.command(aliases=['sg'], pass_context=True)
     async def suggest_song(self, ctx):
         args = ctx.message.content.split(" ")
         if len(args) < 3:
-            await ctx.send("Format: !!suggest_song <youtube_link> <anime name>")
+            await ctx.send("Format: !suggest_song or !sg <youtube_link> <anime name>")
             return
 
         youtube_link = args[1]
@@ -162,7 +199,6 @@ class Commands(commands.Cog, name="commands"):
             with open('songs.json', 'w') as json_file:
                 json_string = json.dumps(self.song_data, indent=4)
                 json_file.write(json_string)
-            await ctx.message.delete()
             await ctx.send("Successfully added anime song to song database.")
             return
         else:
