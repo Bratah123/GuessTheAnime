@@ -119,8 +119,6 @@ class Commands(commands.Cog, name="commands"):
                 music_to_guess = self.song_data[self.song_index][0]
                 music_url = self.song_data[self.song_index][1]
 
-                player = await YTDLSource.from_url(music_url, loop=self.bot.loop,
-                                                   stream=True)
                 ctx.voice_client.stop()
                 await asyncio.sleep(1)
             except Exception as e:
