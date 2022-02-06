@@ -191,13 +191,13 @@ class Commands(commands.Cog, name="commands"):
         await ctx.send(
             f"All Song Links from the queried {queried_name.title()}:\n```Total Songs Found: {total_songs}\n\n{links}```")
 
-    @commands.command(name="character", aliases=['char', 'c'], pass_context=True)
+    @commands.command(name="character", aliases=['char', 'c', 'C'], pass_context=True)
     async def rand_char(self, ctx):
-        if self.in_game.get(ctx.author.id) is None:
-            self.in_game[ctx.author.id] = True
-        elif self.in_game.get(ctx.author.id):
+        if self.in_game.get(ctx.author.id):
             await ctx.send("You are already in a game, please finish that one first.")
             return
+        if self.in_game.get(ctx.author.id) is None:
+            self.in_game[ctx.author.id] = True
         character = random.choice(self.anime_char_data)
         e = discord.Embed(title="Guess the Character")
         e.set_image(url=character['img'])
@@ -215,7 +215,9 @@ class Commands(commands.Cog, name="commands"):
         try:
             user_msg = await self.bot.wait_for('message', check=check, timeout=12.0)
             add_points(str(user_msg.author.id), 1)
-            await ctx.send("Nice, {} got the correct answer! ({})".format(ctx.author.name, " ".join(character['name'])))
+            await ctx.send(
+                "Nice, {} got the correct answer, you gain a point! ({})".format(user_msg.author.name, " ".join(
+                    character['name'])))
         except asyncio.TimeoutError:
             await ctx.send(f"You could not answer correctly in the time given {ctx.author.name}.")
         finally:
