@@ -100,7 +100,12 @@ class Commands(commands.Cog, name="commands"):
 
                 player = await YTDLSource.from_url(music_url, loop=self.bot.loop,
                                                    stream=True)
-                ctx.voice_client.play(player, after=lambda x: print('Player error: %s' % x) if x else None)
+                try:
+                    ctx.voice_client.play(player, after=lambda x: print('Player error: %s' % x) if x else None)
+                except Exception as e:
+                    print("error playing song:", e)
+                    self.song_index += 1
+                    continue
                 await ctx.send(
                     "Try guessing this anime by typing in this channel (anyone can try)! You got 25 seconds.")
 
