@@ -198,6 +198,8 @@ class Commands(commands.Cog, name="commands"):
             return
         if self.in_game.get(ctx.author.id) is None:
             self.in_game[ctx.author.id] = True
+        if not self.in_game.get(ctx.author.id):
+            self.in_game[ctx.author.id] = True
         character = random.choice(self.anime_char_data)
         e = discord.Embed(title="Guess the Character")
         e.set_image(url=character['img'])
@@ -208,7 +210,7 @@ class Commands(commands.Cog, name="commands"):
                 for n in character['name']:
                     if char_name == n.lower():
                         return True
-            return False
+            return char_name == " ".join(character['name']).lower()
 
         await ctx.send(embed=e)
 
