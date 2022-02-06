@@ -64,6 +64,9 @@ class Commands(commands.Cog, name="commands"):
             self.song_data = data
         random.shuffle(self.song_data)
         self.song_index = 0
+        with open('anime_characters.json') as f:
+            data = json.load(f)
+            self.anime_char_data = data
 
     @commands.command(name="playgame", aliases=['pg'], pass_context=True)
     async def play_game(self, ctx):
@@ -186,6 +189,30 @@ class Commands(commands.Cog, name="commands"):
 
         await ctx.send(
             f"All Song Links from the queried {queried_name.title()}:\n```Total Songs Found: {total_songs}\n\n{links}```")
+
+    @commands.command(name="character", aliases=['char', 'c'], pass_context=True)
+    async def rand_char(self, ctx):
+        character = random.choice(self.anime_char_data)
+        e = discord.Embed(title="Guess the Character")
+        e.set_image(url=character['img'])
+
+        def check(m):
+            char_name = m.content.lower()
+            if m.channel == ctx.channel:
+                for n in character['name']:
+                    if char_name == n.lower():
+                        return True
+            return False
+
+        await ctx.send(embed=e)
+
+        try:
+            user_msg = await self.bot.wait_for('message', check=check, timeout=25.0)
+            add_points(str(user_msg.author.id), 1)
+            await ctx.send("Nice you got the correct answer! ({})".format(" ".character['name']))
+        except asyncio.TimeoutError:
+            await ctx.send("You could not answer correctly in the time given.")
+            return
 
     @commands.command(aliases=['sg'], pass_context=True)
     async def suggest_song(self, ctx):
