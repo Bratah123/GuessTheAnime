@@ -67,6 +67,8 @@ class Commands(commands.Cog, name="commands"):
         with open('anime_characters.json') as f:
             data = json.load(f)
             self.anime_char_data = data
+        random.shuffle(self.anime_char_data)
+        self.anime_char_index = 0
         self.in_game = {}
 
     @commands.command(name="playgame", aliases=['pg'], pass_context=True)
@@ -196,10 +198,10 @@ class Commands(commands.Cog, name="commands"):
         if self.in_game.get(ctx.author.id):
             await ctx.send("You are already in a game, please finish that one first.")
             return
-        if self.in_game.get(ctx.author.id) is None:
+        self.anime_char_index += 1
+        if self.in_game.get(ctx.author.id) is None or not self.in_game.get(ctx.author.id):
             self.in_game[ctx.author.id] = True
-        if not self.in_game.get(ctx.author.id):
-            self.in_game[ctx.author.id] = True
+
         character = random.choice(self.anime_char_data)
         e = discord.Embed(title="Guess the Character")
         e.set_image(url=character['img'])
@@ -224,6 +226,9 @@ class Commands(commands.Cog, name="commands"):
             await ctx.send(f"You could not answer correctly in the time given {ctx.author.name}.")
         finally:
             self.in_game[ctx.author.id] = False
+            if self.anime_char_index == len(self.anime_char_data) - 1:
+                random.shuffle(self.anime_char_data)
+                self.anime_char_data = 0
 
     @commands.command(aliases=['sg'], pass_context=True)
     async def suggest_song(self, ctx):
