@@ -67,6 +67,7 @@ class Commands(commands.Cog, name="commands"):
         with open('anime_characters.json') as f:
             data = json.load(f)
             self.anime_char_data = data
+        self.in_game = {}
 
     @commands.command(name="playgame", aliases=['pg'], pass_context=True)
     async def play_game(self, ctx):
@@ -192,6 +193,11 @@ class Commands(commands.Cog, name="commands"):
 
     @commands.command(name="character", aliases=['char', 'c'], pass_context=True)
     async def rand_char(self, ctx):
+        if self.in_game.get(ctx.author.id) is None:
+            self.in_game[ctx.author.id] = True
+        elif self.in_game.get(ctx.author.id):
+            await ctx.send("You are already in a game, please finish that one first.")
+            return
         character = random.choice(self.anime_char_data)
         e = discord.Embed(title="Guess the Character")
         e.set_image(url=character['img'])
@@ -207,12 +213,13 @@ class Commands(commands.Cog, name="commands"):
         await ctx.send(embed=e)
 
         try:
-            user_msg = await self.bot.wait_for('message', check=check, timeout=25.0)
+            user_msg = await self.bot.wait_for('message', check=check, timeout=12.0)
             add_points(str(user_msg.author.id), 1)
-            await ctx.send("Nice you got the correct answer! ({})".format(" ".character['name']))
+            await ctx.send("Nice, {} got the correct answer! ({})".format(ctx.author.name, " ".join(character['name'])))
         except asyncio.TimeoutError:
-            await ctx.send("You could not answer correctly in the time given.")
-            return
+            await ctx.send(f"You could not answer correctly in the time given {ctx.author.name}.")
+        finally:
+            self.in_game[ctx.author.id] = False
 
     @commands.command(aliases=['sg'], pass_context=True)
     async def suggest_song(self, ctx):
