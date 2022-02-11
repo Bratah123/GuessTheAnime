@@ -202,7 +202,7 @@ class Commands(commands.Cog, name="commands"):
         if self.in_game.get(ctx.author.id) is None or not self.in_game.get(ctx.author.id):
             self.in_game[ctx.author.id] = True
 
-        character = random.choice(self.anime_char_data)
+        character = self.anime_char_data[self.anime_char_index]
         e = discord.Embed(title="Guess the Character")
         e.set_image(url=character['img'])
 
