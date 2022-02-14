@@ -71,6 +71,12 @@ class Commands(commands.Cog, name="commands"):
         self.anime_char_index = 0
         self.in_game = {}
 
+        self.trivia_index = 0
+        with open('trivia_questions.json') as f:
+            data = json.load(f)
+            self.anime_trivia_questions = data
+        random.shuffle(self.anime_trivia_questions)
+
     @commands.command(name="playgame", aliases=['pg'], pass_context=True)
     async def play_game(self, ctx):
         """
@@ -171,7 +177,7 @@ class Commands(commands.Cog, name="commands"):
     @commands.command(name="stats", pass_context=True)
     async def handle_stats(self, ctx):
         e = discord.Embed(title=ctx.author.name + "'s Stats",
-                          description=f"Song Points: {get_points(str(ctx.author.id))}")
+                          description=f"Guess Points: {get_points(str(ctx.author.id))}")
         await ctx.send(embed=e)
 
     @commands.command(name="query_song", aliases=['qs'], pass_context=True)
@@ -212,23 +218,28 @@ class Commands(commands.Cog, name="commands"):
                 for n in character['name']:
                     if char_name == n.lower():
                         return True
-            return char_name == " ".join(character['name']).lower()
+            reversed_name = reversed(character['name'])
+            return char_name == " ".join(character['name']).lower() or char_name == " ".join(reversed_name).lower() or \
+                (char_name == "skip" and m.author.id == ctx.author.id)
 
         await ctx.send(embed=e)
 
         try:
             user_msg = await self.bot.wait_for('message', check=check, timeout=12.0)
-            add_points(str(user_msg.author.id), 1)
-            await ctx.send(
-                "Nice, {} got the correct answer, you gain a point! ({})".format(user_msg.author.name, " ".join(
-                    character['name'])))
+            if user_msg.content.lower() == "skip":
+                await ctx.send("Skipped that character, {}".format(user_msg.author.name))
+            else:
+                add_points(str(user_msg.author.id), 1)
+                await ctx.send(
+                    "Nice, {} got the correct answer, you gain a point! ({})".format(user_msg.author.name, " ".join(
+                        character['name'])))
         except asyncio.TimeoutError:
             await ctx.send(f"You could not answer correctly in the time given {ctx.author.name}.")
         finally:
             self.in_game[ctx.author.id] = False
             if self.anime_char_index == len(self.anime_char_data) - 1:
                 random.shuffle(self.anime_char_data)
-                self.anime_char_data = 0
+                self.anime_char_index = 0
 
     @commands.command(aliases=['sg'], pass_context=True)
     async def suggest_song(self, ctx):
@@ -270,6 +281,50 @@ class Commands(commands.Cog, name="commands"):
         except Exception as e:
             print(e)
             await ctx.send("Ran out of time for approval")
+
+    @commands.command(name="trivia", aliases=['t', 'T'], pass_context=True)
+    async def trivia(self, ctx):
+        if self.in_game.get(ctx.author.id):
+            await ctx.send("You are already in a game, please finish that one first.")
+            return
+
+        self.in_game[ctx.author.id] = True
+        e = discord.Embed(title="Anime Trivia [{}]".format(ctx.author.name), color=discord.colour.Colour.teal(),
+                          description="Please type out the entire answer.")
+        e.set_thumbnail(url="https://cdn.discordapp.com/attachments/746519006961336370/942326792293851157/komi_scared"
+                            ".jpg")
+
+        trivia_question = self.anime_trivia_questions[self.trivia_index]
+        self.trivia_index += 1
+        question = trivia_question["question"]
+        e.add_field(name="Question", value=f"```{question}```", inline=False)
+        random.shuffle(trivia_question["answers"])
+        answers = "```"
+        for i, answer in enumerate(trivia_question["answers"]):
+            answers += f"\n{i + 1}. {answer}"
+        answers += "```"
+        e.add_field(name="Possible Answers", value=answers, inline=False)
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        await ctx.send(embed=e)
+
+        try:
+            user_msg = await self.bot.wait_for('message', check=check, timeout=12.0)
+            if user_msg.content.lower() == trivia_question["answer"].lower():
+                add_points(str(user_msg.author.id), 1)
+                await ctx.send(
+                    "Nice! {} got the correct answer ({}).".format(user_msg.author.name, trivia_question["answer"]))
+            else:
+                await ctx.send("Wrong Answer, {}.".format(user_msg.author.name, trivia_question["answer"]))
+        except asyncio.TimeoutError:
+            await ctx.send(f"You could not answer correctly in the time given {ctx.author.name}.")
+        finally:
+            self.in_game[ctx.author.id] = False
+            if self.trivia_index == len(self.anime_trivia_questions) - 1:
+                random.shuffle(self.anime_trivia_questions)
+                self.trivia_index = 0
 
 
 def setup(bot):
