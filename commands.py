@@ -113,7 +113,8 @@ class Commands(commands.Cog, name="commands"):
                 player = await YTDLSource.from_url(music_url, loop=self.bot.loop,
                                                    stream=True)
                 try:
-                    ctx.voice_client.play(player, after=lambda x: print('Player error: %s' % x) if x else None)
+                    if ctx.voice_client is not None:
+                        ctx.voice_client.play(player, after=lambda x: print('Player error: %s' % x) if x else None)
                 except Exception as e:
                     print("error playing song:", e)
                     self.song_index += 1
