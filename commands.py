@@ -52,7 +52,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
 
         filename = data['url'] if stream else ytdl.prepare_filename(data)
-        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+        return cls(discord.FFmpegPCMAudio(executable="E:/ffmpeg-2021-06-02-git-071930de72-full_build/bin/ffmpeg.exe",
+                                          source=filename, **ffmpeg_options), data=data)
 
 
 class Commands(commands.Cog, name="commands"):
@@ -62,11 +63,13 @@ class Commands(commands.Cog, name="commands"):
         with open('songs.json') as f:
             data = json.load(f)
             self.song_data = data
+        print(f"Loaded {len(self.song_data)} songs...")
         random.shuffle(self.song_data)
         self.song_index = 0
         with open('anime_characters.json') as f:
             data = json.load(f)
             self.anime_char_data = data
+        print(f"Loaded {len(self.anime_char_data)} anime characters...")
         random.shuffle(self.anime_char_data)
         self.anime_char_index = 0
         self.in_game = {}
@@ -75,6 +78,7 @@ class Commands(commands.Cog, name="commands"):
         with open('trivia_questions.json') as f:
             data = json.load(f)
             self.anime_trivia_questions = data
+        print(f"Loaded {len(self.anime_trivia_questions)} trivia questions...")
         random.shuffle(self.anime_trivia_questions)
 
     @commands.command(name="playgame", aliases=['pg'], pass_context=True)
@@ -141,9 +145,13 @@ class Commands(commands.Cog, name="commands"):
                 await asyncio.sleep(1)
             except Exception as e:
                 print(e)
-                await ctx.send(
-                    "Sorry, you took to long to guess do !playgame to start again, the song was from {}.".format(
-                        music_to_guess.title()))
+                if "Video unavailable" in str(e) or "Private video" in str(e):
+                    await ctx.send(
+                        f"{music_to_guess} has a broken link ({self.song_data[self.song_index][1]}), pls fix!")
+                else:
+                    await ctx.send(
+                        "Sorry, you took to long to guess do !playgame to start again, the song was from {}.".format(
+                            music_to_guess.title()))
                 self.song_index += 1
                 ctx.voice_client.stop()
 
@@ -221,7 +229,7 @@ class Commands(commands.Cog, name="commands"):
                         return True
             reversed_name = reversed(character['name'])
             return char_name == " ".join(character['name']).lower() or char_name == " ".join(reversed_name).lower() or \
-                (char_name == "skip" and m.author.id == ctx.author.id)
+                   (char_name == "skip" and m.author.id == ctx.author.id)
 
         await ctx.send(embed=e)
 
@@ -232,10 +240,11 @@ class Commands(commands.Cog, name="commands"):
             else:
                 add_points(str(user_msg.author.id), 1)
                 await ctx.send(
-                    "Nice, {} got the correct answer, you gain a point! ({})".format(user_msg.author.name, " ".join(
-                        character['name'])))
+                    f"Nice, {user_msg.author.name} got the correct answer, you gain a point for guessing"
+                    f" {' '.join(character['name'])} from the anime **{character['anime']}**!")
         except asyncio.TimeoutError:
-            await ctx.send(f"You could not answer correctly in the time given {ctx.author.name}.")
+            await ctx.send(f"You could not answer correctly in the time given {ctx.author.name}.\n"
+                           f"The character was **{' '.join(character['name'])}** from the anime **{character['anime']}**")
         finally:
             self.in_game[ctx.author.id] = False
             if self.anime_char_index == len(self.anime_char_data) - 1:
@@ -291,7 +300,7 @@ class Commands(commands.Cog, name="commands"):
 
         self.in_game[ctx.author.id] = True
         e = discord.Embed(title="Anime Trivia [{}]".format(ctx.author.name), color=discord.colour.Colour.teal(),
-                          description="Please type out the entire answer.")
+                          description="Pick one of the numbers or type out the answer.")
         e.set_thumbnail(url="https://cdn.discordapp.com/attachments/746519006961336370/942326792293851157/komi_scared"
                             ".jpg")
 
@@ -301,8 +310,20 @@ class Commands(commands.Cog, name="commands"):
         e.add_field(name="Question", value=f"```{question}```", inline=False)
         random.shuffle(trivia_question["answers"])
         answers = "```"
+        answers_dict = {
+
+        }
+        correct_ans = {
+
+        }
         for i, answer in enumerate(trivia_question["answers"]):
-            answers += f"\n{i + 1}. {answer}"
+            answers_dict[f"{i + 1}"] = answer
+            if answer == trivia_question["answer"]:
+                correct_ans[f"{i + 1}"] = answer
+        for key in answers_dict:
+            answer = answers_dict[key]
+            answers += f"\n{key}. {answer}"
+
         answers += "```"
         e.add_field(name="Possible Answers", value=answers, inline=False)
 
@@ -313,7 +334,9 @@ class Commands(commands.Cog, name="commands"):
 
         try:
             user_msg = await self.bot.wait_for('message', check=check, timeout=12.0)
-            if user_msg.content.lower() == trivia_question["answer"].lower():
+            user_ans = user_msg.content.lower()
+            ans = trivia_question["answer"]
+            if user_ans == ans.lower() or correct_ans.get(user_ans) == ans:
                 add_points(str(user_msg.author.id), 1)
                 await ctx.send(
                     "Nice! {} got the correct answer ({}).".format(user_msg.author.name, trivia_question["answer"]))
