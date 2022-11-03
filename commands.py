@@ -1,4 +1,3 @@
-import json
 import random
 
 import discord
@@ -6,7 +5,7 @@ import youtube_dl as youtube_dl
 from discord.ext import commands
 import asyncio
 
-from database_functions import add_points, get_points
+from database_functions import *
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
@@ -185,8 +184,31 @@ class Commands(commands.Cog, name="commands"):
 
     @commands.command(name="stats", pass_context=True)
     async def handle_stats(self, ctx):
-        e = discord.Embed(title=ctx.author.name + "'s Stats",
-                          description=f"Guess Points: {get_points(str(ctx.author.id))}")
+        e = discord.Embed(title=ctx.author.name + "'s Stats")
+        elo = get_elo(str(ctx.author.id))
+        rank_icon = ""
+        rank = ""
+        if 0 <= elo < 25:
+            rank = "Bronze"
+            rank_icon = "https://cdn.discordapp.com/attachments/746519006961336370/1037595271321886770/unknown.png"
+        elif 25 <= elo < 35:
+            rank = "Silver"
+            rank_icon = "https://cdn.discordapp.com/attachments/746519006961336370/1037595899683160124/unknown.png"
+        elif 35 <= elo < 45:
+            rank = "Gold"
+            rank_icon = "https://cdn.discordapp.com/attachments/746519006961336370/1037595961674969188/unknown.png"
+        elif 45 <= elo < 55:
+            rank = "Platinum"
+            rank_icon = "https://cdn.discordapp.com/attachments/746519006961336370/1037596022240727050/unknown.png"
+        elif 55 <= elo:
+            rank = "Diamond"
+            rank_icon = "https://cdn.discordapp.com/attachments/746519006961336370/1037596104931418132/unknown.png"
+
+        e.set_thumbnail(url=rank_icon)
+        e.add_field(name="Guess Points", value=get_points(str(ctx.author.id)))
+        e.add_field(name="ELO Points", value=elo, inline=False)
+        e.add_field(name="Rank", value=rank, inline=False)
+
         await ctx.send(embed=e)
 
     @commands.command(name="query_song", aliases=['qs'], pass_context=True)
@@ -236,12 +258,15 @@ class Commands(commands.Cog, name="commands"):
         try:
             user_msg = await self.bot.wait_for('message', check=check, timeout=12.0)
             if user_msg.content.lower() == "skip":
-                await ctx.send("Skipped that character, {}".format(user_msg.author.name))
+                await ctx.send(f"Skipped **{' '.join(character['name'])}** from "
+                               f"**{character['anime']}**, {user_msg.author.name}")
             else:
                 add_points(str(user_msg.author.id), 1)
+                add_character_to_inventory(user_msg.author.id, character)
                 await ctx.send(
                     f"Nice, {user_msg.author.name} got the correct answer, you gain a point for guessing"
-                    f" {' '.join(character['name'])} from the anime **{character['anime']}**!")
+                    f" **{' '.join(character['name'])}** from the anime **{character['anime']}**!\n"
+                    f"The character has been added to your inventory!")
         except asyncio.TimeoutError:
             await ctx.send(f"You could not answer correctly in the time given {ctx.author.name}.\n"
                            f"The character was **{' '.join(character['name'])}** from the anime **{character['anime']}**")
@@ -351,5 +376,5 @@ class Commands(commands.Cog, name="commands"):
                 self.trivia_index = 0
 
 
-def setup(bot):
-    bot.add_cog(Commands(bot))
+async def setup(bot):
+    await bot.add_cog(Commands(bot))

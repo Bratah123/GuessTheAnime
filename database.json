@@ -1,14 +1,179 @@
 {
-    "207371595113562124": 105,
-    "302095208584052747": 24,
-    "388897967140241408": 170,
-    "318166361882755073": 316,
-    "207612559849816070": 40,
-    "483748792676515860": 2,
-    "310246874152173569": 2,
-    "208059445500968962": 2,
-    "227629155892723712": 6,
-    "293560095017533450": 49,
-    "354797921159348226": 4,
-    "668146463465013248": 23
+  "207371595113562124": {
+    "points": 0,
+    "elo": 0,
+    "team": [
+      {
+        "name": [
+          "Broly"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/2/275050.jpg?s=af2503514a10cf755a752a4f8c5c1284",
+        "anime": "Dragon Ball Z Movie 08: Moetsukiro!! Nessen, Ressen, Chougekisen",
+        "animes_from": 3,
+        "mangas_from": 2,
+        "favorites": 1446
+      }
+    ],
+    "inventory": []
+  },
+  "388897967140241408": {
+    "points": 11,
+    "elo": 0,
+    "team": [],
+    "inventory": [
+      {
+        "name": [
+          "Broly"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/2/275050.jpg?s=af2503514a10cf755a752a4f8c5c1284",
+        "anime": "Dragon Ball Z Movie 08: Moetsukiro!! Nessen, Ressen, Chougekisen",
+        "animes_from": 3,
+        "mangas_from": 2,
+        "favorites": 1446
+      },
+      {
+        "name": [
+          "Zo\u00eb",
+          "Hange"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/15/208637.jpg?s=789d7c5d3ccabdbab82278ddeb047f24",
+        "anime": "Shingeki no Kyojin OVA",
+        "animes_from": 3,
+        "mangas_from": 3,
+        "favorites": 17765
+      },
+      {
+        "name": [
+          "Momonga"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/3/288006.jpg?s=f2d12d5f05c5af1580166b12876244bf",
+        "anime": "Overlord",
+        "animes_from": 3,
+        "mangas_from": 2,
+        "favorites": 12581
+      },
+      {
+        "name": [
+          "Zombieman"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/9/295004.jpg?s=fcdae8f97a1aca9e922299ff0b2971ca",
+        "anime": "One Punch Man",
+        "animes_from": 3,
+        "mangas_from": 1,
+        "favorites": 234
+      },
+      {
+        "name": [
+          "Suika"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/14/413992.jpg?s=1bb692db5179f99ca1690ddaedad7375",
+        "anime": "Dr. Stone",
+        "animes_from": 3,
+        "mangas_from": 1,
+        "favorites": 615
+      },
+      {
+        "name": [
+          "Shiro"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/16/114507.jpg?s=dd19de3afe6a0d7a5cddd6bd33e61f4e",
+        "anime": "Deadman Wonderland",
+        "animes_from": 1,
+        "mangas_from": 1,
+        "favorites": 5533
+      },
+      {
+        "name": [
+          "Lee",
+          "Rock"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/13/433353.jpg?s=fed35b9569304994a01a95956545aed5",
+        "anime": "Naruto: Shippuuden Movie 1",
+        "animes_from": 3,
+        "mangas_from": 3,
+        "favorites": 5834
+      },
+      {
+        "name": [
+          "Kochou",
+          "Kanae"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/16/389355.jpg?s=a624cf8525949877b56e240ca9a4055c",
+        "anime": "Kimetsu no Yaiba",
+        "animes_from": 2,
+        "mangas_from": 1,
+        "favorites": 143
+      },
+      {
+        "name": [
+          "Esdeath"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/12/265641.jpg?s=64e7c0fe42c3f70dc649854363b88c14",
+        "anime": "Akame ga Kill!",
+        "animes_from": 3,
+        "mangas_from": 2,
+        "favorites": 10742
+      },
+      {
+        "name": [
+          "Saber"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/6/275276.jpg?s=2b70b1daac8eebff46fffa2944f09610",
+        "anime": "Fate/stay night",
+        "animes_from": 3,
+        "mangas_from": 3,
+        "favorites": 31029
+      },
+      {
+        "name": [
+          "Venti"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/2/473881.jpg?s=2f212dee2a5cc564d6aaa004289a0872",
+        "anime": "Genshin: Dengeki Comic Anthology",
+        "animes_from": 0,
+        "mangas_from": 1,
+        "favorites": 164
+      }
+    ]
+  },
+  "318166361882755073": {
+    "points": 3,
+    "elo": 0,
+    "team": [],
+    "inventory": [
+      {
+        "name": [
+          "Dracule",
+          "Mihawk"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/7/69747.jpg?s=2a651d4a55772ce9d13e3421b02915e9",
+        "anime": "One Piece",
+        "animes_from": 3,
+        "mangas_from": 3,
+        "favorites": 1616
+      },
+      {
+        "name": [
+          "Gojou",
+          "Wakana"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/5/472608.jpg?s=542463e642639b218c7dee372feaeffe",
+        "anime": "Sono Bisque Doll wa Koi wo Suru",
+        "animes_from": 2,
+        "mangas_from": 1,
+        "favorites": 1204
+      },
+      {
+        "name": [
+          "Ashido",
+          "Mina"
+        ],
+        "img": "https://cdn.myanimelist.net/r/100x156/images/characters/16/329525.jpg?s=c8023bf9590a9cdebb8131da7490569c",
+        "anime": "Boku no Hero Academia",
+        "animes_from": 3,
+        "mangas_from": 2,
+        "favorites": 828
+      }
+    ]
+  }
 }
